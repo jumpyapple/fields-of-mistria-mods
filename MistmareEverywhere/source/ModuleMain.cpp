@@ -4,15 +4,55 @@ using namespace YYTK;
 
 static YYTKInterface* g_ModuleInterface = nullptr;
 
-void FrameCallback(FWFrame& FrameContext) {
-	UNREFERENCED_PARAMETER(FrameContext);
+static const char* const VERSION = "0.1.0";
+static const char* const CAN_MOUNT_SCRIPT = "gml_Script_can_mount@gml_Object_obj_ari_Create_0";
 
-	static uint32_t frame_counter = 0;
 
-	if (frame_counter % 30 == 0)
-		g_ModuleInterface->PrintWarning("[MistmareIsEverywhere] - 30 frames have passed! Framecount: %u", frame_counter);
+RValue& CanMountHook(
+	IN CInstance* Self,
+	IN CInstance* Other,
+	OUT RValue& Result,
+	IN int ArgumentCount,
+	IN RValue** Arguments
+)
+{
+	const PFUNC_YYGMLScript original = reinterpret_cast<PFUNC_YYGMLScript>(MmGetHookTrampoline(
+		g_ArSelfModule,
+		CAN_MOUNT_SCRIPT
+	));
+	original(
+		Self,
+		Other,
+		Result,
+		ArgumentCount,
+		Arguments
+	);
 
-	frame_counter++;
+	Result.m_Real = 1.0;
+
+	return Result;
+}
+
+void CreateCanMountHook(AurieStatus& status)
+{
+	CScript* can_mount_ptr = nullptr;
+
+	status = g_ModuleInterface->GetNamedRoutinePointer(CAN_MOUNT_SCRIPT, reinterpret_cast<PVOID*>(&can_mount_ptr));
+	if (!AurieSuccess(status)) {
+		g_ModuleInterface->Print(CM_LIGHTRED, "[MistmareEverywhere] - Failed to get script (%s)!", CAN_MOUNT_SCRIPT);
+	}
+
+	status = MmCreateHook(
+		g_ArSelfModule,
+		CAN_MOUNT_SCRIPT,
+		can_mount_ptr->m_Functions->m_ScriptFunction,
+		CanMountHook,
+		nullptr
+	);
+
+	if (!AurieSuccess(status)) {
+		g_ModuleInterface->Print(CM_LIGHTRED, "[MistmareEverywhere] - Failed to create hook for '%s'!", CAN_MOUNT_SCRIPT);
+	}
 }
 
 
@@ -40,16 +80,15 @@ EXPORTED AurieStatus ModuleInitialize(
 	if (!g_ModuleInterface)
 		return AURIE_MODULE_DEPENDENCY_NOT_RESOLVED;
 
-	g_ModuleInterface->Print(CM_LIGHTAQUA, "[MistmareIsEverywhere] - Plugin starting ...");
+	g_ModuleInterface->Print(CM_LIGHTAQUA, "[MistmareEverywhere] - Plugin starting ...");
 
-	last_status = g_ModuleInterface->CreateCallback(Module, EVENT_FRAME, FrameCallback, 0);
-
+	CreateCanMountHook(last_status);
 	if (!AurieSuccess(last_status)) {
-		g_ModuleInterface->Print(CM_LIGHTRED, "[MistmareIsEverywhere] - Failed to register a callback!");
+		g_ModuleInterface->Print(CM_LIGHTRED, "[MistmareEverywhere] - Exiting due to failure on start!");
+		return last_status;
 	}
 
-	g_ModuleInterface->Print(CM_LIGHTGREEN, "[MistmareIsEverywhere] - Plugin started!");
-
+	g_ModuleInterface->Print(CM_LIGHTGREEN, "[MistmareEverywhere] - Plugin started!");
 	return AURIE_SUCCESS;
 }
 
