@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Start">
+
+    <!-- Base on https://stackoverflow.com/a/14792225/ and
+    https://github.com/christianspecht/bitbucket-backup/blob/8f5d8de0d145c075b03495f5b76f04118e870cf7/build.proj
+
+    With a modification to run msbuild with a PowerShell based script.
+    -->
+
+    <!-- Variables -->
+    <PropertyGroup>
+        <PackageId>dev.jumpyapple.mods.MistmareEverywhere</PackageId>
+        <Version>0.1.0</Version>
+        <Authors>jumpyapple</Authors>
+        <Company>jumpyapple</Company>
+
+
+        <!-- Release Folder -->
+        <!-- To change the output folder, use the following parameter: /p:BuildDir=C:\BuildTest-->
+        <MainReleaseDir>release</MainReleaseDir>
+        <ReleaseDir>$(MainReleaseDir)\bin</ReleaseDir>
+
+        <!-- Build Folder -->
+        <OutDir>x64\Release</OutDir>
+
+        <!-- create zip file? -->
+        <CreateZip>1</CreateZip>
+
+        <!-- path for MSBuild Community Tasks (DLLs are from https://github.com/loresoft/msbuildtasks/) -->
+        <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\.build</MSBuildCommunityTasksPath>
+
+    </PropertyGroup>
+
+    <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.Targets" />
+
+
+    <!-- "Autostart" -->
+    <Target Name="Start">
+        <CallTarget Targets="DeleteReleaseFolder"/>
+        <CallTarget Targets="Build"/>
+        <CallTarget Targets="CopyDllFile"/>
+        <CallTarget Targets="CopyManifestFile"/>
+        <CallTarget Condition="$(CreateZip) == '1'" Targets="Zip"/>
+    </Target>
+
+
+    <!-- delete and re-create build folder -->
+    <Target Name="DeleteReleaseFolder">
+        <RemoveDir Directories="$(MainReleaseDir)"/>
+    </Target>
+
+
+    <!-- compile solution as release -->
+    <Target Name="Build">
+        <MSBuild Projects="MistmareEverywhere.sln" Properties="Configuration=Release"/>
+    </Target>
+
+
+    <!-- copy files to release folder -->
+    <Target Name="CopyDllFile">
+        <MakeDir Directories="$(ReleaseDir)"/>
+        <ItemGroup>
+            <ReleaseFiles
+                Include="$(OutDir)\**\*.*"
+                Exclude="$(OutDir)\*.pdb;
+                    $(OutDir)\*.xml;
+                    $(OutDir)\*.exp;
+                    $(OutDir)\*.lib">
+            </ReleaseFiles>
+        </ItemGroup>
+        <!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/copy-task?view=vs-2022 -->
+        <Copy SourceFiles="@(ReleaseFiles)" DestinationFolder="$(ReleaseDir)\Mistmare Everywhere\aurie"/>
+
+    </Target>
+
+    <Target Name="CopyManifestFile">
+        <MakeDir Directories="$(ReleaseDir)"/>
+        <ItemGroup>
+            <ManifestFile Include="manifest.json"></ManifestFile>
+        </ItemGroup>
+        <Copy SourceFiles="@(ManifestFile)" DestinationFolder="$(ReleaseDir)\Mistmare Everywhere\"/>
+
+    </Target>
+
+
+    <!-- create zip file (see doc at https://github.com/loresoft/msbuildtasks/) -->
+    <Target Name="Zip">
+        <CreateItem Include="$(ReleaseDir)\**\*.*" >
+            <Output ItemName="ZipFiles" TaskParameter="Include"/>
+        </CreateItem>
+        <Zip ZipFileName="$(MainReleaseDir)\zip\MistmareEverywhere-$(Version).zip" WorkingDirectory="$(ReleaseDir)" Files="@(ZipFiles)" />
+    </Target>
+
+</Project>
