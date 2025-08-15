@@ -1,12 +1,12 @@
 #include <YYToolkit/YYTK_Shared.hpp>
+
 using namespace Aurie;
 using namespace YYTK;
 
-static YYTKInterface* g_ModuleInterface = nullptr;
+static YYTK::YYTKInterface* g_ModuleInterface = nullptr;
 
 static const char* const VERSION = "0.1.0";
 static const char* const CAN_MOUNT_SCRIPT = "gml_Script_can_mount@gml_Object_obj_ari_Create_0";
-
 
 RValue& CanMountHook(
 	IN CInstance* Self,
@@ -29,7 +29,6 @@ RValue& CanMountHook(
 	);
 
 	Result.m_Real = 1.0;
-
 	return Result;
 }
 
@@ -55,7 +54,6 @@ void CreateCanMountHook(AurieStatus& status)
 	}
 }
 
-
 EXPORTED AurieStatus ModulePreinitialize(
 	IN AurieModule* Module,
 	IN const fs::path& ModulePath
@@ -72,6 +70,7 @@ EXPORTED AurieStatus ModuleInitialize(
 	IN const fs::path& ModulePath
 )
 {
+	UNREFERENCED_PARAMETER(Module);
 	UNREFERENCED_PARAMETER(ModulePath);
 
 	AurieStatus last_status = AURIE_SUCCESS;

@@ -27,7 +27,7 @@
         <CreateZip>1</CreateZip>
 
         <!-- path for MSBuild Community Tasks (DLLs are from https://github.com/loresoft/msbuildtasks/) -->
-        <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\.build</MSBuildCommunityTasksPath>
+        <MSBuildCommunityTasksPath>$(MSBuildThisFileDirectory)\..\.build</MSBuildCommunityTasksPath>
 
     </PropertyGroup>
 
