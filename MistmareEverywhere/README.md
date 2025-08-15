@@ -1,6 +1,6 @@
 # Mistmare Everywhere
 
-Want to take your Mistmare with you everywhere in Mistria? Want to surprise March with Mistmare in this bedroom?
+> Want to take your Mistmare with you everywhere in Mistria? Want to surprise March with Mistmare in his bedroom?
 
 A simple mod that enables the player to summon Mistmare (almost) everywhere.
 
@@ -8,8 +8,8 @@ A simple mod that enables the player to summon Mistmare (almost) everywhere.
 
 1. Get MOMI either from [its Nexusmod's page](https://www.nexusmods.com/fieldsofmistria/mods/78) or [its GitHub release page](https://github.com/Garethp/Mods-of-Mistria-Installer/releases)
 2. Follow the instructions of MOMI to set it up.
-2. Download the zip file and drop it into the `mods` folder.
-3. Run MOMI and install the mod.
+3. Download the zip file and drop it into the `mods` folder.
+4. Run MOMI and install the mod.
 
 ## Credits
 
