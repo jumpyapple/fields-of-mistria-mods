@@ -1,8 +1,14 @@
 # Dumper
 
-> Create a bunch of HTML files.
+> Dump the details of the given instance into HTML files.
 
-Provide `DumpInstance` that creates HTML files with variables grouped into cetegory.
+Provide `DumpInstance` function that creates HTML files with variables grouped into cetegory. It will also attempt to
+find the name of the contructor of the struct with `instanceof`. For any field that is named `sprite`, it will
+also attempt to get the sprite name via `sprite_get_name`
+
+It may take a while to dump the global instance and there will also be more than 300k files generated. If you want to save
+disk space, you can compress all the HTML files and run a web server that support compressed static file serving. One such
+web server is [Static Web Server](https://static-web-server.net/).
 
 ## Installation
 
