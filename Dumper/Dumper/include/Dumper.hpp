@@ -268,7 +268,8 @@ json ToJsonObject(std::string name, RValue value, bool should_recurse_array) {
 					array_item_name += "[";
 					array_item_name += std::to_string(i);
 					array_item_name += "]";
-					// We want the name and type, but not the detail of the element in the array.
+					// We want the name and type, but not the detail of the element in the array,
+					// so we set should_recurse_array=false.
 					json array_item = ToJsonObject(array_item_name, array_values[i], false);
 					values.push_back(array_item);
 
@@ -318,6 +319,8 @@ json ToJsonObject(std::string name, RValue value, bool should_recurse_array) {
 					item["value"] = result_str;
 				}
 				else {
+					// So far the instanceof function will fall back to "struct", so
+					// this does not show up yet.
 					item["value"] = "TODO2";
 				}
 
@@ -331,6 +334,8 @@ json ToJsonObject(std::string name, RValue value, bool should_recurse_array) {
 		}
 		else if (value.m_Kind == VALUE_REF) {
 			// stuff like __sprite_vertex_buffer_format exist which does not seem to be a sprite.
+			// There are other like enabled_sprite, hovered_sprite, but it should be appearing close
+			// to the "sprite", so that should be eaisly deduce. Otherwise, add those name here.
 			if (name == "sprite") {
 				RValue result = g_ModuleInterface->CallBuiltin("sprite_get_name", { value });
 
@@ -339,11 +344,11 @@ json ToJsonObject(std::string name, RValue value, bool should_recurse_array) {
 					item["value"] = result_str;
 				}
 				else {
-					item["value"] = "";
+					item["value"] = ""; // intentionally left blank.
 				}
 			}
 			else {
-				item["value"] = "";
+				item["value"] = ""; // intentionally left blank.
 			}
 		}
 		else {
@@ -357,8 +362,18 @@ json ToJsonObject(std::string name, RValue value, bool should_recurse_array) {
 	return item;
 }
 
+/**
+* @brief Dump the details of the Instance into target_directory
+* 
+* The details of the given instenace will be put in index.html file while
+* the details for other related instances are put in a HTML file with pointer (in uint64)
+* as its name.
+* 
+* @param Instance The instance to start dumping from.
+* @param target_directory The directory to store all the HTML files. 
+*/
 void DumpInstance(
-	IN RValue& Instance, std::string name, fs::path target_directory
+	IN RValue& Instance, fs::path target_directory
 )
 {
 	// Sanity checks
@@ -367,7 +382,7 @@ void DumpInstance(
 		return;
 	}
 	else if (!fs::exists(target_directory)) {
-		// Create target folder if it does not exist.
+		// Create the target folder if it does not exist.
 		fs::create_directories(target_directory);
 	}
 
@@ -395,10 +410,11 @@ void DumpInstance(
 		// Group all the items by their type.
 		for (auto& [key, value] : items)
 		{
-			// TODO: Check if key is ignored.
 			std::string key_name = key.c_str();
 			RValue value_copied = *value;
 
+			// We want to list array content on the same page, but we do not want to
+			// traverse deeper.
 			json item = ToJsonObject(key_name, value_copied, true);
 
 			// Get the item's type, so we can categorize it.
@@ -430,8 +446,7 @@ void DumpInstance(
 				undefined_items.push_back(item);
 			}
 			else {
-				// e.g. array, unknown, "" (just empty)
-				// TODO: Need to handle array kind.
+				// e.g. unknown, "" (just empty)
 				other_items.push_back(item);
 			}
 		}
@@ -449,7 +464,10 @@ void DumpInstance(
 		template_data["arrays"] = array_items;
 		template_data["other"] = other_items;
 
-		// Render the template to the index file.
+		// Render the template to a HTML file.
+		// Initially, the file name was formatted as "{variable_name}_{type}_{pointer}.html".
+		// However, we cannot reliably link to the file if the same pointer show up at a different
+		// section of the dump since it will have a different name.
 		fs::path index_path = target_directory / filename;
 
 		std::string page_text;

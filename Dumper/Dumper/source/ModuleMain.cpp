@@ -20,7 +20,7 @@ void EventObjectCallback(IN FWCodeEvent& CallContext)
 		g_ModuleInterface->Print(CM_LIGHTAQUA, "[Dumper %s] - Dumping instance ...", VERSION);
 
 		RValue instance = global_instance->ToRValue();
-		DumpInstance(instance, "Global Instance", "global_instance_dumps");
+		DumpInstance(instance, "global_instance_dumps");
 
 		g_ModuleInterface->Print(CM_GREEN, "[Dumper %s] - Done dumping!", VERSION);
 	}
