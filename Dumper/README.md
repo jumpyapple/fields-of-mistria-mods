@@ -1,0 +1,19 @@
+# Dumper
+
+> Create a bunch of HTML files.
+
+Provide `DumpInstance` that creates HTML files with variables grouped into cetegory.
+
+## Installation
+
+1. Get MOMI either from [its Nexusmod's page](https://www.nexusmods.com/fieldsofmistria/mods/78) or [its GitHub release page](https://github.com/Garethp/Mods-of-Mistria-Installer/releases)
+2. Follow the instructions of MOMI to set it up.
+3. Download the zip file and drop it into the `mods` folder.
+4. Run MOMI and install the mod.
+
+## Credits
+
+- [Archie_UwU](https://github.com/Archie-osu) for [YYToolkit](https://github.com/AurieFramework/YYToolkit), [Aurie framework](https://github.com/AurieFramework/Aurie) and the intial version of the dumper code.
+- [DeUloO](https://github.com/DeUloO) for the dumper code that is updated to the later version of the framework.
+- [AnnaNomoly](https://github.com/AnnaNomoly) for [a Mod starter template](https://github.com/AnnaNomoly/YYToolkit)
+- [christianspecht's answer](https://stackoverflow.com/a/14792225/) on StackOverflow for a packaging script for MOMI
