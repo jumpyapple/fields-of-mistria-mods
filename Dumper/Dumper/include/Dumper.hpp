@@ -407,7 +407,7 @@ json ToJsonObject(std::string name, RValue value, bool should_recurse_array) {
 * @param target_directory The directory to store all the HTML files. 
 */
 void DumpInstance(
-	IN RValue& Instance, fs::path target_directory
+	IN RValue& Instance, fs::path target_directory, std::string index_filename = "index.html"
 )
 {
 	// Sanity checks
@@ -421,7 +421,7 @@ void DumpInstance(
 	}
 
 	queue.clear();
-	queue.push_back(std::make_tuple(Instance, "index.html"));
+	queue.push_back(std::make_tuple(Instance, index_filename));
 
 	int count = 0;
 	while (!queue.empty()) {
@@ -525,5 +525,65 @@ void DumpInstance(
 		}
 
 		queue.erase(queue.begin());
+	}
+}
+
+void DumpInstance(
+	IN CInstance* Instance, fs::path target_directory
+)
+{
+	RValue value = Instance->ToRValue();
+	DumpInstance(value, target_directory);
+}
+
+void DumpInstance(
+	IN CInstance* Instance, fs::path target_directory, std::string index_filename
+)
+{
+	RValue value = Instance->ToRValue();
+	DumpInstance(value, target_directory, index_filename);
+}
+
+/**
+* Dump all variables from the hook.
+* 
+* The Prefix is the prefix for the folder name. This function will create at least
+* 3 folders (one for Self, one for Other and one for Result). A folder is
+* create for each of the Arguments.
+* 
+* The Count is there so that multiple copy of the index file can exist. You should increase
+* the Count each time the hook is executed.
+* 
+* Currently, we assume that the address will point to the same thing across the calls.
+*/
+void DumpHookVariables(
+	IN std::string Prefix,
+	IN uint64_t Count,
+	IN CInstance* Self,
+	IN CInstance* Other,
+	IN RValue Result,
+	IN int ArgumentCount,
+	IN RValue** Arguments
+)
+{
+	std::string self_folder = Prefix;
+	self_folder.append("_self_dumps");
+	DumpInstance(Self, self_folder, std::format("index_{}.html", Count));
+
+	std::string other_folder = Prefix;
+	other_folder.append("_other_dumps");
+	DumpInstance(Other, other_folder, std::format("index_{}.html", Count));
+
+	std::string result_folder = Prefix;
+	result_folder.append("_result_dumps");
+	DumpInstance(Result, result_folder, std::format("index_{}.html", Count));
+
+	for (int i = 0; i < ArgumentCount; i++) {
+		std::string arg_folder = Prefix;
+		arg_folder.append("_arg");
+		arg_folder.append(std::to_string(i));
+		arg_folder.append("dumps");
+
+		DumpInstance(*Arguments[i], arg_folder, std::format("index_{}.html", Count));
 	}
 }
