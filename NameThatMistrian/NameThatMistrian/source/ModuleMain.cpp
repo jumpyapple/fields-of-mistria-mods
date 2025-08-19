@@ -32,7 +32,7 @@ static RValue our_tap_event_callback;
 //static RValue our_think_event_callback;
 
 // Somehow the event callback function need to return something.
-// true seems to work fine, so we leave it as is.
+// true seems to work fine, so we leave it as that.
 static RValue empty_result = true;
 
 /**
@@ -100,16 +100,20 @@ void InjectTapCallbacks(RValue MapMenu) {
 						name = "pet";
 					}
 
-					// Prepare and inject out tap callback.
+					// Prepare and inject our tap callback.
 					// 30 is just arbitary number that we can check in
 					// the hooked function to filter out the call.
+					//
+					// If you use the dumper, you will see that the original
+					// callback registration has no argument, but we are adding two
+					// argument just to make sure we can filter it.
 					RValue our_tap_event_callback = RValue({
 						{ "arg_array", std::vector<RValue>({30, name.c_str()})},
 						{ "func", original_on_tap_function },
-						});
+					});
 
 					// Inject our event callback to any NPC icon found.
-					// TODO: Maybe Archie's big brain already implement a way for GameMaker to 
+					// TODO: Maybe Archie's big brain already implements a way for GameMaker to 
 					// call C++ function? Still have to test that out.
 					RValue target_event_callbacks = sprite_nodes[j].GetMember("event_callbacks");
 					g_ModuleInterface->CallBuiltin(
@@ -125,10 +129,11 @@ void InjectTapCallbacks(RValue MapMenu) {
 					*/
 
 					// Turn on tap and hover listening.
-					// Somehow we need both, but then when I add hover listener
-					// it registered as hover whereever the mouse is even when not
-					// on the icon. Maybe checking the in_hover during `think` callback
-					// is not it.
+					// 
+					// Somehow we need both, but then when I add a hover listener (via `think`
+					// event callback as shown in the comment above), the hover event is fired all
+					// the time regardless of whether the mouse is on the icon or not.
+					// Maybe checking the in_hover during `think` callback is not it.
 					g_ModuleInterface->CallBuiltin(
 						"struct_set",
 						{ sprite_nodes[j], "listens_for_taps", true }
@@ -163,6 +168,15 @@ void Setup(RValue MapMenu) {
 	InjectTapCallbacks(MapMenu);
 }
 
+/**
+* A hook for the spawn_menu script.
+* 
+* We are using this to intercept the intial call that create the mapmenu.
+* It seems to be called everytime the player click back to the map tab of the journal menu
+* as well.
+* 
+* The Self is the __anchor (in the global instance) and the Result is what ever is being spawned.
+*/
 RValue& SpawnMenuHook(
 	IN CInstance* Self,
 	IN CInstance* Other,
@@ -197,6 +211,17 @@ RValue& SpawnMenuHook(
 	return Result;
 }
 
+/**
+* A hook for the tap event of the north arrow of the map menu.
+* 
+* We are hijacking this and repurpose it as a target for our own callback definition.
+* The original call does not have any argument, so we are differentiating between
+* the orignal call and our call by the number of arguments. We double check it with an arbitary
+* value in the first argument.
+* 
+* The second argument for our call is, however, the name of the NPC. We then use that
+* to display to the player.
+*/
 RValue& NorthArrowTapHook(
 	IN CInstance* Self,
 	IN CInstance* Other,
@@ -247,6 +272,12 @@ RValue& NorthArrowTapHook(
 	return Result;
 }
 
+/**
+* A hook for the selection_location script of the map menu.
+* 
+* We need this hook because when the location change all our injected event callback get removed.
+* Therefore here is a good place to re-inject them all again.
+*/
 RValue& SelectLocationHook(
 	IN CInstance* Self,
 	IN CInstance* Other,
@@ -299,6 +330,16 @@ void RegisterHook(OUT AurieStatus& status, IN const char* script_name, IN std::s
 	}
 }
 
+/**
+* Register multiple hooks all in one go.
+* 
+* If any fail, we return early with the error, so the caller can terminate the plugin.
+* 
+* Each entry in the hook is
+* - 1st element of the tuple = the script name
+* - 2nd = the hook identifier (usually the same as the script name)
+* - 3rd = the hook to be called instead of the original function.
+*/
 void RegisterHooks(OUT AurieStatus& status, std::vector<std::tuple<const char*, std::string_view, PVOID>> hooks) {
 	for (size_t i = 0; i < hooks.size(); i++) {
 		RegisterHook(status, std::get<0>(hooks[i]), std::get<1>(hooks[i]), std::get<2>(hooks[i]));
