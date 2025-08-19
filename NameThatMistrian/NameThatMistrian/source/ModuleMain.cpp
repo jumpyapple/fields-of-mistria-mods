@@ -116,16 +116,10 @@ void InjectTapCallbacks(RValue MapMenu) {
 					// TODO: Maybe Archie's big brain already implements a way for GameMaker to 
 					// call C++ function? Still have to test that out.
 					RValue target_event_callbacks = sprite_nodes[j].GetMember("event_callbacks");
-					g_ModuleInterface->CallBuiltin(
-						"struct_set",
-						{ target_event_callbacks, "tap", our_tap_event_callback }
-					);
+					target_event_callbacks["tap"] = our_tap_event_callback;
 
 					/*
-					g_ModuleInterface->CallBuiltin(
-						"struct_set",
-						{ target_event_callbacks, "think", our_think_event_callback }
-					);
+					target_event_callbacks["think"] = our_think_event_callback;
 					*/
 
 					// Turn on tap and hover listening.
@@ -134,21 +128,14 @@ void InjectTapCallbacks(RValue MapMenu) {
 					// event callback as shown in the comment above), the hover event is fired all
 					// the time regardless of whether the mouse is on the icon or not.
 					// Maybe checking the in_hover during `think` callback is not it.
-					g_ModuleInterface->CallBuiltin(
-						"struct_set",
-						{ sprite_nodes[j], "listens_for_taps", true }
-					);
-					g_ModuleInterface->CallBuiltin(
-						"struct_set",
-						{ sprite_nodes[j], "listens_for_hovers", true }
-					);
+					sprite_nodes[j]["listens_for_taps"] = true;
+					sprite_nodes[j]["listens_for_hovers"] = true;
 
 					// Initially thought that we need this to elevate the icon up so
 					// that we can click it, but it seems to work fine without it.
-					/*g_ModuleInterface->CallBuiltin(
-						"struct_set",
-						{ sprite_nodes[j], "z", 102.0 }
-					);*/
+					/*
+					sprite_nodes[j]["z"] = 102.0;
+					*/
 				}
 			}
 		}
@@ -246,10 +233,7 @@ RValue& NorthArrowTapHook(
 				new_map_name.append(Arguments[1]->ToCString());
 
 				// The `text` member does not work, so we are using `display_text`.
-				g_ModuleInterface->CallBuiltin(
-					"struct_set",
-					{ map_name, "display_text", new_map_name.c_str() }
-				);
+				map_name["display_text"] = new_map_name.c_str();
 			}
 		}
 

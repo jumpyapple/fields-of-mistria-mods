@@ -11,6 +11,10 @@ I don't have to strain my eyes trying to find out who is who anymore.
 3. Download the zip file and drop it into the `mods` folder.
 4. Run MOMI and install the mod.
 
+## How to use
+
+After open the map menu, click on the NPC's icon to view the name.
+
 ## Credits
 
 - [Archie_UwU](https://github.com/Archie-osu) for [YYToolkit](https://github.com/AurieFramework/YYToolkit) and [Aurie framework](https://github.com/AurieFramework/Aurie)
