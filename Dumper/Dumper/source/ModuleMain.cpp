@@ -1,55 +1,89 @@
 #include <YYToolkit/YYTK_Shared.hpp>
+#include "common.hpp"
 #include "Dumper.hpp"
+#include "RegisterHook.hpp"
 
 using namespace Aurie;
 using namespace YYTK;
 
 static const char* const ON_DRAW_GUI_SCRIPT = "gml_Script_on_draw_gui@Display@Display";
-static const char* const SPAWN_MENU_SCRIPT = "gml_Script_spawn_menu@Anchor@Anchor";
 
 static const bool SHOULD_DUMP_GLOBAL_INSTANCE_INTERACTIVELY = false;
-static bool SHOULD_DUMP = false;
 
 static uint64_t event_count_1 = 0;
 static uint64_t event_count_2 = 0;
 
-void RegisterHook(OUT AurieStatus& status, IN const char* script_name, IN std::string_view hook_identifier, IN PVOID destination_function) {
-	CScript* can_mount_ptr = nullptr;
+#pragma region MapMenu stuff
+static const char* const SPAWN_MENU_SCRIPT = "gml_Script_spawn_menu@Anchor@Anchor";
 
-	status = g_ModuleInterface->GetNamedRoutinePointer(script_name, reinterpret_cast<PVOID*>(&can_mount_ptr));
-	if (!AurieSuccess(status)) {
-		g_ModuleInterface->Print(CM_LIGHTRED, "[MistmareEverywhere] - Failed to get script (%s)!", script_name);
-	}
+static RValue MapMenu;
+static RValue map_name;
 
-	status = MmCreateHook(
-		g_ArSelfModule,
-		hook_identifier,
-		can_mount_ptr->m_Functions->m_ScriptFunction,
-		destination_function,
-		nullptr
-	);
+bool IsMapMenu(RValue menu) {
+	uint16_t has_map_menu_elements = 0;
+	auto members = menu.ToRefMap();
 
-	if (!AurieSuccess(status)) {
-		g_ModuleInterface->Print(CM_LIGHTRED, "[MistmareEverywhere] - Failed to create hook for '%s'!", script_name);
-	}
-}
-
-void RegisterHooks(OUT AurieStatus& status, std::vector<std::tuple<const char*, std::string_view, PVOID>> hooks) {
-	for (size_t i = 0; i < hooks.size(); i++) {
-		RegisterHook(status, std::get<0>(hooks[i]), std::get<1>(hooks[i]), std::get<2>(hooks[i]));
-		if (!AurieSuccess(status)) {
-			break;
+	// These elements show up in the MapMenu.
+	// We could possibly just call instanceof and check
+	// if the returned value is MapMenu.
+	for (auto& [key, value] : members)
+	{
+		if (key == "map") {
+			has_map_menu_elements |= 1;
+		}
+		else if (key == "east_arrow") {
+			has_map_menu_elements |= 2;
+		}
+		else if (key == "south_arrow") {
+			has_map_menu_elements |= 4;
+		}
+		else if (key == "selected_location_id") {
+			has_map_menu_elements |= 8;
 		}
 	}
+
+	return has_map_menu_elements == 15;
 }
+
+RValue& SpawnMenuHook(
+	IN CInstance* Self,
+	IN CInstance* Other,
+	OUT RValue& Result,
+	IN int ArgumentCount,
+	IN RValue** Arguments
+)
+{
+	g_ModuleInterface->Print(CM_LIGHTGREEN, "[Dumper %s] - SpawnMenuHook called!", VERSION);
+
+	const PFUNC_YYGMLScript original = reinterpret_cast<PFUNC_YYGMLScript>(MmGetHookTrampoline(
+		g_ArSelfModule,
+		SPAWN_MENU_SCRIPT
+	));
+	original(
+		Self,
+		Other,
+		Result,
+		ArgumentCount,
+		Arguments
+	);
+
+	/*if (g_SHOULD_DUMP) {
+		Dumper::DumpHookVariables(g_ModuleInterface, "spawn_menu", event_count_1, Self, Other, Result, ArgumentCount, Arguments);
+		event_count_1++;
+	}*/
+
+	return Result;
+}
+#pragma endregion
 
 void EventObjectCallback(IN FWCodeEvent& CallContext)
 {
 	auto& [self, other, code, argc, args] = CallContext.Arguments();
 
-	if ((GetAsyncKeyState('B') & 1)) {
-		SHOULD_DUMP = !SHOULD_DUMP;
-		g_ModuleInterface->Print(CM_LIGHTAQUA, "[Dumper %s] - SHOULD_DUMP = %d  ...", VERSION, SHOULD_DUMP);
+	// Check for F3 key.
+	if ((GetAsyncKeyState(VK_F3) & 1)) {
+		g_SHOULD_DUMP = !g_SHOULD_DUMP;
+		g_ModuleInterface->Print(CM_LIGHTAQUA, "[Dumper %s] - g_SHOULD_DUMP = %d  ...", VERSION, g_SHOULD_DUMP);
 
 		if (SHOULD_DUMP_GLOBAL_INSTANCE_INTERACTIVELY) {
 			CInstance* global_instance = nullptr;
@@ -61,7 +95,7 @@ void EventObjectCallback(IN FWCodeEvent& CallContext)
 			g_ModuleInterface->Print(CM_LIGHTAQUA, "[Dumper %s] - Dumping instance ...", VERSION);
 
 			RValue instance = global_instance->ToRValue();
-			DumpInstance(instance, "global_instance_dumps");
+			Dumper::DumpRValueWithDefaultIndexFilename(g_ModuleInterface, instance, "global_instance_dumps");
 
 			g_ModuleInterface->Print(CM_GREEN, "[Dumper %s] - Done dumping!", VERSION);
 		}
@@ -88,39 +122,6 @@ RValue& OnDrawGuiHook(
 		Arguments
 	);
 
-	if (SHOULD_DUMP) {
-		DumpHookVariables("on_draw_gui", event_count_1, Self, Other, Result, ArgumentCount, Arguments);
-		event_count_1++;
-	}
-
-	return Result;
-}
-
-RValue& SpawnMenuHook(
-	IN CInstance* Self,
-	IN CInstance* Other,
-	OUT RValue& Result,
-	IN int ArgumentCount,
-	IN RValue** Arguments
-)
-{
-	const PFUNC_YYGMLScript original = reinterpret_cast<PFUNC_YYGMLScript>(MmGetHookTrampoline(
-		g_ArSelfModule,
-		SPAWN_MENU_SCRIPT
-	));
-	original(
-		Self,
-		Other,
-		Result,
-		ArgumentCount,
-		Arguments
-	);
-
-	if (SHOULD_DUMP) {
-		DumpHookVariables("spawn_menu", event_count_2, Self, Other, Result, ArgumentCount, Arguments);
-		event_count_2++;
-	}
-
 	return Result;
 }
 
@@ -141,7 +142,7 @@ EXPORTED AurieStatus ModuleInitialize(
 )
 {
 	UNREFERENCED_PARAMETER(Module);
-	UNREFERENCED_PARAMETER(ModulePath);
+	//UNREFERENCED_PARAMETER(ModulePath);
 
 	AurieStatus last_status = AURIE_SUCCESS;
 
@@ -149,11 +150,10 @@ EXPORTED AurieStatus ModuleInitialize(
 	if (!g_ModuleInterface)
 		return AURIE_MODULE_DEPENDENCY_NOT_RESOLVED;
 
-	g_ModuleInterface->Print(CM_LIGHTAQUA, "[Dumper %s] - Plugin starting ...", VERSION);
+	g_ModuleInterface->Print(CM_LIGHTAQUA, "[Dumper %s] - Plugin starting (path: %s) ...", VERSION, ModulePath.c_str());
 
 	RegisterHooks(last_status, {
-		{ ON_DRAW_GUI_SCRIPT, ON_DRAW_GUI_SCRIPT, OnDrawGuiHook },
-		{ SPAWN_MENU_SCRIPT, SPAWN_MENU_SCRIPT, SpawnMenuHook }
+		{ SPAWN_MENU_SCRIPT, SPAWN_MENU_SCRIPT, SpawnMenuHook },
 	});
 
 	last_status = g_ModuleInterface->CreateCallback(
@@ -163,7 +163,7 @@ EXPORTED AurieStatus ModuleInitialize(
 		0
 	);
 	if (!AurieSuccess(last_status)) {
-		g_ModuleInterface->Print(CM_LIGHTRED, "[MistmareEverywhere] - Exiting due to failure on start!");
+		g_ModuleInterface->Print(CM_LIGHTRED, "[Dumper %s] - Exiting due to failure on start!", VERSION);
 		return last_status;
 	}
 
