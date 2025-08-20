@@ -11,7 +11,15 @@ jq -C '. | with_entries(select(.key | startswith("npcs/adeline")))' __fiddle__.j
 ```
 
 The `-C` tells jq to output with colors, and `-R` tell less that the intput is raw? So if you want to
-dump jq's ouitput to a file, remove `-C` for a raw JSON data without the console's control sequences.
+dump jq's output to a file, remove `-C` for a raw JSON data without the console's control sequences.
+
+### Filtering `localization.json` for entry starts with `npcs`
+
+```shell
+jq -C '.eng | with_entries(select(.key | startswith("npcs")))' localization.json | less -R
+```
+
+Note the `.eng` that limits the serach to only English localization.
 
 ### Dump Related
 
