@@ -6,7 +6,8 @@ void RegisterHook(OUT Aurie::AurieStatus& status, IN const char* script_name, IN
 
 	status = g_ModuleInterface->GetNamedRoutinePointer(script_name, reinterpret_cast<PVOID*>(&can_mount_ptr));
 	if (!AurieSuccess(status)) {
-		g_ModuleInterface->Print(YYTK::CM_LIGHTRED, "[NameThatMistrian %s] - Failed to get script (%s)!", VERSION, script_name);
+		g_ModuleInterface->Print(YYTK::CM_LIGHTRED, "[Dumper %s] - Failed to get script (%s)!", VERSION, script_name);
+		return;
 	}
 
 	status = Aurie::MmCreateHook(
@@ -18,7 +19,8 @@ void RegisterHook(OUT Aurie::AurieStatus& status, IN const char* script_name, IN
 	);
 
 	if (!AurieSuccess(status)) {
-		g_ModuleInterface->Print(YYTK::CM_LIGHTRED, "[NameThatMistrian %s] - Failed to create hook for '%s'!", VERSION, script_name);
+		g_ModuleInterface->Print(YYTK::CM_LIGHTRED, "[Dumper %s] - Failed to create hook for '%s'!", VERSION, script_name);
+		return;
 	}
 }
 

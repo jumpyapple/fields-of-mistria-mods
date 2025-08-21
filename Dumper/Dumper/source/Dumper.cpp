@@ -11,14 +11,6 @@ using json = nlohmann::json;
 namespace Dumper {
 	namespace fs = std::filesystem;
 
-	void EnableDumper() {
-		g_SHOULD_DUMP = true;
-	}
-
-	void DisableDumper() {
-		g_SHOULD_DUMP = false;
-	}
-
 	CScript* TryLookupScriptByFunctionPointer(
 		IN YYTK::YYTKInterface* g_ModuleInterface,
 		IN PFUNC_YYGMLScript ScriptFunction
@@ -190,12 +182,6 @@ namespace Dumper {
 		std::string index_filename
 	)
 	{
-		// Check for global disable.
-		if (g_SHOULD_DUMP) {
-			g_ModuleInterface->Print(YYTK::CM_LIGHTYELLOW, "[Dumper %s] - Ignoring a call to DumpRValue since g_SHOULD_DUMP is false", VERSION);
-			return;
-		}
-
 		// Sanity checks
 		if (fs::exists(target_directory) && !fs::is_directory(target_directory)) {
 			g_ModuleInterface->Print(CM_LIGHTYELLOW, "[Dumper %s] - Stop dumping because the provided path is not a directory.", VERSION);
@@ -363,30 +349,29 @@ namespace Dumper {
 		IN RValue** Arguments
 	)
 	{
-		if (g_SHOULD_DUMP) {
-			std::string self_folder = Prefix;
-			self_folder.append("_self_dumps");
-			DumpCInstance(g_ModuleInterface, Self, self_folder, std::format("index_{}.html", Count));
+		g_ModuleInterface->Print(CM_WHITE, "[Dumper %s] - Dumping Self of '%s'...", VERSION, Prefix.c_str());
+		std::string self_folder = Prefix;
+		self_folder.append("_self_dumps");
+		DumpCInstance(g_ModuleInterface, Self, self_folder, std::format("index_{}.html", Count));
 
-			std::string other_folder = Prefix;
-			other_folder.append("_other_dumps");
-			DumpCInstance(g_ModuleInterface, Other, other_folder, std::format("index_{}.html", Count));
+		g_ModuleInterface->Print(CM_WHITE, "[Dumper %s] - Dumping Other of '%s'...", VERSION, Prefix.c_str());
+		std::string other_folder = Prefix;
+		other_folder.append("_other_dumps");
+		DumpCInstance(g_ModuleInterface, Other, other_folder, std::format("index_{}.html", Count));
 
-			std::string result_folder = Prefix;
-			result_folder.append("_result_dumps");
-			DumpRValue(g_ModuleInterface, Result, result_folder, std::format("index_{}.html", Count));
+		g_ModuleInterface->Print(CM_WHITE, "[Dumper %s] - Dumping Result of '%s'...", VERSION, Prefix.c_str());
+		std::string result_folder = Prefix;
+		result_folder.append("_result_dumps");
+		DumpRValue(g_ModuleInterface, Result, result_folder, std::format("index_{}.html", Count));
 
-			for (int i = 0; i < ArgumentCount; i++) {
-				std::string arg_folder = Prefix;
-				arg_folder.append("_arg");
-				arg_folder.append(std::to_string(i));
-				arg_folder.append("_dumps");
+		for (int i = 0; i < ArgumentCount; i++) {
+			std::string arg_folder = Prefix;
+			arg_folder.append("_arg");
+			arg_folder.append(std::to_string(i));
+			arg_folder.append("_dumps");
 
-				DumpRValue(g_ModuleInterface, *Arguments[i], arg_folder, std::format("index_{}.html", Count));
-			}
-		}
-		else {
-			g_ModuleInterface->Print(YYTK::CM_LIGHTYELLOW, "[Dumper %s] - Ignoring a call to DumpHookVariables since g_SHOULD_DUMP is false", VERSION);
+			g_ModuleInterface->Print(CM_WHITE, "[Dumper %s] - Dumping Arguments[%d] of '%s'...", VERSION, i, Prefix.c_str());
+			DumpRValue(g_ModuleInterface, *Arguments[i], arg_folder, std::format("index_{}.html", Count));
 		}
 	}
 }

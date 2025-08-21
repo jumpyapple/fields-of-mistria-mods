@@ -8,7 +8,8 @@ using namespace YYTK;
 
 static const char* const ON_DRAW_GUI_SCRIPT = "gml_Script_on_draw_gui@Display@Display";
 
-static const bool SHOULD_DUMP_GLOBAL_INSTANCE_INTERACTIVELY = false;
+static bool g_SHOULD_DUMP = false;
+static bool SHOULD_DUMP_GLOBAL_INSTANCE_INTERACTIVELY = false;
 
 static uint64_t event_count_1 = 0;
 static uint64_t event_count_2 = 0;
@@ -53,8 +54,6 @@ RValue& SpawnMenuHook(
 	IN RValue** Arguments
 )
 {
-	g_ModuleInterface->Print(CM_LIGHTGREEN, "[Dumper %s] - SpawnMenuHook called!", VERSION);
-
 	const PFUNC_YYGMLScript original = reinterpret_cast<PFUNC_YYGMLScript>(MmGetHookTrampoline(
 		g_ArSelfModule,
 		SPAWN_MENU_SCRIPT
@@ -67,10 +66,10 @@ RValue& SpawnMenuHook(
 		Arguments
 	);
 
-	/*if (g_SHOULD_DUMP) {
+	if (g_SHOULD_DUMP) {
 		Dumper::DumpHookVariables(g_ModuleInterface, "spawn_menu", event_count_1, Self, Other, Result, ArgumentCount, Arguments);
 		event_count_1++;
-	}*/
+	}
 
 	return Result;
 }

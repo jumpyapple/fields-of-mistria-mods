@@ -23,31 +23,34 @@
 #include <inja.hpp>
 #include "Dumper_Shared.hpp"
 
-namespace fs = std::filesystem;
+// These static variables are probably different copies for this own mod
+// and when other mod is calling.
+static std::unordered_set<uint64_t> visited_pointers;
+static std::vector<std::tuple<YYTK::RValue, std::string>> queue;
 
 static const std::unordered_set<std::string_view> IGNORING_KEYS = {
-	"node_terrain_tile",
-	"node_terrain_kind",
-	"node_is_room_editor_collision",
-	"node_object_id",
-	"node_collideable",
-	"node_terrain_is_watered",
-	"node_rug_parent",
-	"node_pathfinding_cost",
-	"node_flags",
-	"node_force",
-	"node_terrain_variant",
-	"node_terrain_is_watered",
-	"node_rug_id",
-	"node_is_room_editor_collision",
-	"node_top_left_y",
-	"node_top_left_x",
-	"node_terrain_ground_kind",
-	"node_pathfinding_sitting",
-	"node_parent",
-	"maximum_item_counts",
-	"node_footstep_kind",
-	"node_can_jump_over"
+		"node_terrain_tile",
+		"node_terrain_kind",
+		"node_is_room_editor_collision",
+		"node_object_id",
+		"node_collideable",
+		"node_terrain_is_watered",
+		"node_rug_parent",
+		"node_pathfinding_cost",
+		"node_flags",
+		"node_force",
+		"node_terrain_variant",
+		"node_terrain_is_watered",
+		"node_rug_id",
+		"node_is_room_editor_collision",
+		"node_top_left_y",
+		"node_top_left_x",
+		"node_terrain_ground_kind",
+		"node_pathfinding_sitting",
+		"node_parent",
+		"maximum_item_counts",
+		"node_footstep_kind",
+		"node_can_jump_over"
 };
 
 static const std::string INDEX_TEMPLATE_TEXT = R"(<!DOCTYPE html>
@@ -230,16 +233,17 @@ static const std::string INDEX_TEMPLATE_TEXT = R"(<!DOCTYPE html>
 </html>
 )";
 
-static std::unordered_set<uint64_t> visited_pointers;
-static std::vector<std::tuple<YYTK::RValue, std::string>> queue;
-static bool g_SHOULD_DUMP = false;
+namespace Dumper {
 
-YYTK::CScript* TryLookupScriptByFunctionPointer(IN YYTK::YYTKInterface* g_ModuleInterface, IN YYTK::PFUNC_YYGMLScript ScriptFunction);
+	namespace fs = std::filesystem;
 
-nlohmann::json ToJsonObject(
-	IN YYTK::YYTKInterface* g_ModuleInterface,
-	std::string name,
-	YYTK::RValue value,
-	bool should_recurse_array,
-	bool dont_queue
-);
+	YYTK::CScript* TryLookupScriptByFunctionPointer(IN YYTK::YYTKInterface* g_ModuleInterface, IN YYTK::PFUNC_YYGMLScript ScriptFunction);
+
+	nlohmann::json ToJsonObject(
+		IN YYTK::YYTKInterface* g_ModuleInterface,
+		std::string name,
+		YYTK::RValue value,
+		bool should_recurse_array,
+		bool dont_queue
+	);
+}
