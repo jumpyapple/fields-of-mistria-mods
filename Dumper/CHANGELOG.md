@@ -14,10 +14,17 @@ https://keepachangelog.com/en/1.1.0/
 ## [Unreleased]
 
 ### Added
+
+- Let user copy the name of the method.
+
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+
+- Name of the array does not have the index.
+- The one-line comment broke the js script.
+
 ### Security
 
 ## v0.3.0 - 2025-08-22
