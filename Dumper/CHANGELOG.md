@@ -2,6 +2,15 @@
 
 https://keepachangelog.com/en/1.1.0/
 
+## [Changlog Section Template]
+
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
 ## [Unreleased]
 
 ### Added
@@ -11,7 +20,7 @@ https://keepachangelog.com/en/1.1.0/
 ### Fixed
 ### Security
 
-## v0.2.2 - 2025-08-19
+## v0.2.2 - 2025-08-21
 
 ### Added
 
@@ -22,21 +31,13 @@ https://keepachangelog.com/en/1.1.0/
 - Add an example project to show how the DLL API can be used.
 - Add Resource.rc and resource.h.
 
-### Changed
-### Deprecated
 ### Removed
 
 - Fully remove `EnableDumper`.
 - Fully remove `DispbleDumper`.
 
-### Fixed
-### Security
+## v0.2.1 - 2025-08-21
 
-## v0.2.1 - 2025-08-19
-
-### Added
-### Changed
-### Deprecated
 ### Removed
 
 - Remove `EnableDumper`.
@@ -45,8 +46,6 @@ https://keepachangelog.com/en/1.1.0/
 ### Fixed
 
 - Macro `DEFINE_DUMPING_HOOK_FUNCTION` was hard coded to the DLL version.
-
-### Security
 
 ## v0.2.0 - 2025-08-19
 
