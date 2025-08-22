@@ -112,7 +112,7 @@
                                         {% for array_item in item.values %}
                                         <li>
                                             {% if array_item.type == "struct" or array_item.type == "array" %}
-                                            {% if existsIn(item, "pointer") %}<a href="{{ array_item.filename }}?n={{ item.name }}">{% endif %}
+                                            {% if existsIn(item, "pointer") %}<a href="{{ array_item.filename }}?n={{ array_item.name }}">{% endif %}
                                                 [{{ array_item.type }}] {{ array_item.name }} = {{ array_item.value }}
                                             {% if existsIn(item, "pointer") %}</a>{% endif %}
                                             {% else %}
