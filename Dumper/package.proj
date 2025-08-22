@@ -10,7 +10,7 @@
     <!-- Variables -->
     <PropertyGroup>
         <PackageId>com.jumpyapple.mods.Dumper</PackageId>
-        <Version>0.2.2</Version>
+        <Version>0.3.0</Version>
         <Authors>jumpyapple</Authors>
         <Company>jumpyapple</Company>
 
@@ -65,7 +65,8 @@
                 Exclude="$(OutDir)\*.pdb;
                     $(OutDir)\*.xml;
                     $(OutDir)\*.exp;
-                    $(OutDir)\*.lib">
+                    $(OutDir)\*.lib;
+                    $(OutDir)\ExampleDumper.dll">
             </ReleaseFiles>
         </ItemGroup>
         <!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/copy-task?view=vs-2022 -->

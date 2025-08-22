@@ -84,7 +84,7 @@ namespace Dumper {
 	bool CallDumpRValue(YYTK::YYTKInterface* g_ModuleInterface, YYTK::RValue& Value, fs::path target_directory, std::string index_filename) {
 		if (DumperModule == nullptr) {
 			// We dont know the address yet.
-			DumperModule = GetModuleHandleA("Dumper.dll");
+			DumperModule = GetModuleHandleA("DumperLib.dll");
 
 			if (DumperModule == nullptr) {
 				return false;
@@ -107,7 +107,7 @@ namespace Dumper {
 	bool CallDumpRValueWithDefaultIndexFilename(YYTK::YYTKInterface* g_ModuleInterface, YYTK::RValue& Value, fs::path target_directory) {
 		if (DumperModule == nullptr) {
 			// We dont know the address yet.
-			DumperModule = GetModuleHandleA("Dumper.dll");
+			DumperModule = GetModuleHandleA("DumperLib.dll");
 
 			if (DumperModule == nullptr) {
 				return false;
@@ -130,7 +130,7 @@ namespace Dumper {
 	bool CallDumpCInstance(YYTK::YYTKInterface* g_ModuleInterface, YYTK::CInstance* Instance, fs::path target_directory, std::string index_filename) {
 		if (DumperModule == nullptr) {
 			// We dont know the address yet.
-			DumperModule = GetModuleHandleA("Dumper.dll");
+			DumperModule = GetModuleHandleA("DumperLib.dll");
 
 			if (DumperModule == nullptr) {
 				return false;
@@ -153,7 +153,7 @@ namespace Dumper {
 	bool CallDumpCInstanceWithDefaultIndexFilename(YYTK::YYTKInterface* g_ModuleInterface, YYTK::CInstance* Instance, fs::path target_directory) {
 		if (DumperModule == nullptr) {
 			// We dont know the address yet.
-			DumperModule = GetModuleHandleA("Dumper.dll");
+			DumperModule = GetModuleHandleA("DumperLib.dll");
 
 			if (DumperModule == nullptr) {
 				return false;
@@ -176,7 +176,7 @@ namespace Dumper {
 	bool CallDumpHookVariables(YYTK::YYTKInterface* g_ModuleInterface, std::string Prefix, uint64_t Count, YYTK::CInstance* Self, YYTK::CInstance* Other, YYTK::RValue Result, int ArgumentCount, YYTK::RValue** Arguments) {
 		if (DumperModule == nullptr) {
 			// We dont know the address yet.
-			DumperModule = GetModuleHandleA("Dumper.dll");
+			DumperModule = GetModuleHandleA("DumperLib.dll");
 
 			if (DumperModule == nullptr) {
 				return false;

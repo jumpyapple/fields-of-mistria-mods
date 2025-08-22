@@ -13,6 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Template Files">
+      <UniqueIdentifier>{0a0c17c6-264a-4234-b53e-57879af9e189}</UniqueIdentifier>
+      <Extensions>html;js;css</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ModuleMain.cpp">
@@ -65,13 +69,24 @@
     <ClInclude Include="include\RegisterHook.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="include\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Resource.rc">
+    <ResourceCompile Include="include\Resource.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="templates\page.html">
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="templates\z.js">
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="templates\z.css">
+      <Filter>Template Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

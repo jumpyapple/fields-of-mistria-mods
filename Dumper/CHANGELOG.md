@@ -20,6 +20,15 @@ https://keepachangelog.com/en/1.1.0/
 ### Fixed
 ### Security
 
+## v0.3.0 - 2025-08-22
+
+### Added
+
+- Add template files as embeded resource.
+- Add basic minification that remove whitespaces.
+- Add name passing between HTML files.
+- The section is removed when there is no content.
+
 ## v0.2.2 - 2025-08-21
 
 ### Added

@@ -8,6 +8,7 @@ using namespace YYTK;
 
 static bool g_SHOULD_DUMP = false;
 static uint64_t event_count_1 = 0;
+// This is set to false to not accidentally dump the global instance.
 static bool SHOULD_DUMP_GLOBAL_INSTANCE_INTERACTIVELY = false;
 
 static const char* const SPAWN_MENU_SCRIPT = "gml_Script_spawn_menu@Anchor@Anchor";

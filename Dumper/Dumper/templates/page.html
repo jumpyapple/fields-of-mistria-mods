@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <title>{{ name }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
+    <link rel="stylesheet" href="z.css">
+    <script src="z.js"></script>
+</head>
+<body>
+    <div class="container is-fluid">
+        <div class="columns">
+            <div class="column is-three-quarters">
+                <h1 class="title mt-4">[{{ type }}] <span id="vn">{{ name }}</span> = {{ value }} {% if exists("pointer") %}({{ pointer }}){% endif %}</h1>
+                {% if length(booleans) != 0 %}
+                <section id="boolean">
+                    <h2 class="subtitle">Booleans</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in booleans %}
+                            <li>{{ item.name }} = {{ item.value }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(int64s) != 0 %}
+                <section id="int64">
+                    <h2 class="subtitle">Int64</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in int64s %}
+                            <li>{{ item.name }} = {{ item.value }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(numbers) != 0 %}
+                <section id="number">
+                    <h2 class="subtitle">Numbers</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in numbers %}
+                            <li>{{ item.name }} = {{ item.value }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(strings) != 0 %}
+                <section id="string">
+                    <h2 class="subtitle">Strings</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in strings %}
+                            <li>{{ item.name }} = {{ item.value }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(refs) != 0 %}
+                <section id="ref">
+                    <h2 class="subtitle">Refs</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in refs %}
+                            <li>{{ item.name }} = {{ item.value }} {% if existsIn(item, "pointer") %} {{ item.pointer }}{% endif %}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(undefineds) != 0 %}
+                <section id="undefined">
+                    <h2 class="subtitle">Undefined values</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in undefineds %}
+                            <li>{{ item.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(structs) != 0 %}
+                <section id="struct">
+                    <h2 class="subtitle">Structs</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in structs %}
+                            <li>
+                                {% if existsIn(item, "pointer") %}<a href="{{ item.filename }}?n={{ item.name }}">{% endif %}
+                                    {{ item.name }} = {{ item.value}} {% if existsIn(item, "pointer") %} {{ item.pointer }}{% endif %}
+                                {% if existsIn(item, "pointer") %}</a>{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(arrays) != 0 %}
+                <section id="array">
+                    <h2 class="subtitle">Arrays</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in arrays %}
+                            <li>
+                                <details>
+                                    <summary>{{ item.name }} = {{ item.value }}</summary>
+                                    <ul>
+                                        {% for array_item in item.values %}
+                                        <li>
+                                            {% if array_item.type == "struct" or array_item.type == "array" %}
+                                            {% if existsIn(item, "pointer") %}<a href="{{ array_item.filename }}?n={{ item.name }}">{% endif %}
+                                                [{{ array_item.type }}] {{ array_item.name }} = {{ array_item.value }}
+                                            {% if existsIn(item, "pointer") %}</a>{% endif %}
+                                            {% else %}
+                                            [{{ array_item.type }}] {{ array_item.name }} = {{ array_item.value }}
+                                            {% endif %}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </details>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(other) != 0 %}
+                <section id="other">
+                    <h2 class="subtitle">Other</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in other %}
+                            <li>
+                                {% if existsIn(item, "pointer") %}<a href="{{ item.filename }}?n={{ item.name }}">{% endif %}
+                                    [{{ item.type }}] {{ item.name }}
+                                {% if existsIn(item, "pointer") %}</a>{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+                {% if length(methods) != 0 %}
+                <section id="method">
+                    <h2 class="subtitle">Methods</h2>
+                    <div class="content">
+                        <ul>
+                            {% for item in methods %}
+                            <li>{{ item.name }} = {{ item.value }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </section>
+                {% endif %}
+            </div>
+            <div id="m" class="column is-one-quarter mt-4">
+                <aside class="menu">
+                    <a id="dark-btn" href="#">Dark</a> / <a id="light-btn" href="#">Light</a>
+                    <p class="menu-label">Sections</p>
+                    <ul class="menu-list">
+                        {% if length(booleans) != 0 %}<li><a href="#boolean">Booleans</a></li>{% endif %}
+                        {% if length(int64s) != 0 %}<li><a href="#int64">Int64</a></li>{% endif %}
+                        {% if length(numbers) != 0 %}<li><a href="#number">Numbers</a></li>{% endif %}
+                        {% if length(strings) != 0 %}<li><a href="#string">Strings</a></li>{% endif %}
+                        {% if length(refs) != 0 %}<li><a href="#ref">Refs</a></li>{% endif %}
+                        {% if length(undefineds) != 0 %}<li><a href="#undefined">Undefined</a></li>{% endif %}
+                        {% if length(structs) != 0 %}<li><a href="#struct">Structs</a></li>{% endif %}
+                        {% if length(arrays) != 0 %}<li><a href="#array">Array</a></li>{% endif %}
+                        {% if length(other) != 0 %}<li><a href="#other">Other</a></li>{% endif %}
+                        {% if length(methods) != 0 %}<li><a href="#method">Methods</a></li>{% endif %}
+                    </ul>
+                </aside>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
