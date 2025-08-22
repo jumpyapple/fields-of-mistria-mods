@@ -11,6 +11,43 @@ https://keepachangelog.com/en/1.1.0/
 ### Fixed
 ### Security
 
+## v0.2.2 - 2025-08-19
+
+### Added
+
+- Add DLL API `CallDumpRValue`.
+- Add DLL API `CallDumpRValueWithDefaultIndexFilename`.
+- Add DLL API `CallDumpCInstance`.
+- Add DLL API `CallDumpCInstanceWithDefaultIndexFilename`.
+- Add an example project to show how the DLL API can be used.
+- Add Resource.rc and resource.h.
+
+### Changed
+### Deprecated
+### Removed
+
+- Fully remove `EnableDumper`.
+- Fully remove `DispbleDumper`.
+
+### Fixed
+### Security
+
+## v0.2.1 - 2025-08-19
+
+### Added
+### Changed
+### Deprecated
+### Removed
+
+- Remove `EnableDumper`.
+- Remove `DispbleDumper`.
+
+### Fixed
+
+- Macro `DEFINE_DUMPING_HOOK_FUNCTION` was hard coded to the DLL version.
+
+### Security
+
 ## v0.2.0 - 2025-08-19
 
 ### Added
