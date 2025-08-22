@@ -9,38 +9,41 @@
 #include <windows.h>
 #endif
 
+/**
+* Create a hook that will dump the variables automatically after the original function ends.
+* 
+* Need a global static variable g_SHOULD_DUMP.
+* 
+*/
+#ifdef DUMPER_EXPORTS
 #define DEFINE_DUMPING_HOOK_FUNCTION(FuncName, PluginName, FolderPrefix, HookIdentifier, CounterVarName) \
 YYTK::RValue& FuncName(IN YYTK::CInstance* Self, IN YYTK::CInstance* Other, OUT YYTK::RValue& Result, IN int ArgumentCount, IN YYTK::RValue** Arguments) { \
 	g_ModuleInterface->Print(YYTK::CM_LIGHTGREEN, "[%s %s] - '%s' is called!", PluginName, VERSION, HookIdentifier); \
 	const YYTK::PFUNC_YYGMLScript original = reinterpret_cast<YYTK::PFUNC_YYGMLScript>(Aurie::MmGetHookTrampoline(Aurie::g_ArSelfModule, HookIdentifier)); \
 	original(Self, Other, Result, ArgumentCount, Arguments); \
-	if (SHOULD_DUMP) { \
+	if (g_SHOULD_DUMP) { \
+		Dumper::DumpHookVariables(g_ModuleInterface, FolderPrefix, CounterVarName, Self, Other, Result, ArgumentCount, Arguments); \
+		CounterVarName++; \
+	} \
+	return Result; \
+}
+#else
+#define DEFINE_DUMPING_HOOK_FUNCTION(FuncName, PluginName, FolderPrefix, HookIdentifier, CounterVarName) \
+YYTK::RValue& FuncName(IN YYTK::CInstance* Self, IN YYTK::CInstance* Other, OUT YYTK::RValue& Result, IN int ArgumentCount, IN YYTK::RValue** Arguments) { \
+	g_ModuleInterface->Print(YYTK::CM_LIGHTGREEN, "[%s %s] - '%s' is called!", PluginName, VERSION, HookIdentifier); \
+	const YYTK::PFUNC_YYGMLScript original = reinterpret_cast<YYTK::PFUNC_YYGMLScript>(Aurie::MmGetHookTrampoline(Aurie::g_ArSelfModule, HookIdentifier)); \
+	original(Self, Other, Result, ArgumentCount, Arguments); \
+	if (g_SHOULD_DUMP) { \
 		Dumper::CallDumpHookVariables(g_ModuleInterface, FolderPrefix, CounterVarName, Self, Other, Result, ArgumentCount, Arguments); \
 		CounterVarName++; \
 	} \
 	return Result; \
 }
-
-#define DEFINE_AND_ADD_DUMPING_HOOK_FUNCTION(FuncName, PluginName, FolderPrefix, HookIdentifier, CounterVarName, Hooks) \
-YYTK::RValue& FuncName(IN YYTK::CInstance* Self, IN YYTK::CInstance* Other, OUT YYTK::RValue& Result, IN int ArgumentCount, IN YYTK::RValue** Arguments) { \
-	g_ModuleInterface->Print(YYTK::CM_LIGHTGREEN, "[%s %s] - '%s' is called!", PluginName, VERSION, HookIdentifier); \
-	const YYTK::PFUNC_YYGMLScript original = reinterpret_cast<YYTK::PFUNC_YYGMLScript>(Aurie::MmGetHookTrampoline(Aurie::g_ArSelfModule, HookIdentifier)); \
-	original(Self, Other, Result, ArgumentCount, Arguments); \
-	if (SHOULD_DUMP) { \
-		Dumper::CallDumpHookVariables(g_ModuleInterface, FolderPrefix, CounterVarName, Self, Other, Result, ArgumentCount, Arguments); \
-		CounterVarName++; \
-	} \
-	return Result; \
-} \
-Hooks.push_back(std::make_tuple(HookIdentifier, HookIdentifier, FuncName));
-
+#endif
 
 namespace Dumper {
 
 	namespace fs = std::filesystem;
-
-	DUMPER_API void EnableDumper();
-	DUMPER_API void DisableDumper();
 
 	/**
 	* @brief Dump the details of the Instance into target_directory

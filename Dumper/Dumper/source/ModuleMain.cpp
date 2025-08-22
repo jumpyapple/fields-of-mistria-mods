@@ -6,74 +6,15 @@
 using namespace Aurie;
 using namespace YYTK;
 
-static const char* const ON_DRAW_GUI_SCRIPT = "gml_Script_on_draw_gui@Display@Display";
-
 static bool g_SHOULD_DUMP = false;
+static uint64_t event_count_1 = 0;
 static bool SHOULD_DUMP_GLOBAL_INSTANCE_INTERACTIVELY = false;
 
-static uint64_t event_count_1 = 0;
-static uint64_t event_count_2 = 0;
-
-#pragma region MapMenu stuff
 static const char* const SPAWN_MENU_SCRIPT = "gml_Script_spawn_menu@Anchor@Anchor";
+static const char* const ADD_TITLE_SCRIPT = "gml_Script_add_title@PopupMenu@PopupMenu";
 
-static RValue MapMenu;
-static RValue map_name;
-
-bool IsMapMenu(RValue menu) {
-	uint16_t has_map_menu_elements = 0;
-	auto members = menu.ToRefMap();
-
-	// These elements show up in the MapMenu.
-	// We could possibly just call instanceof and check
-	// if the returned value is MapMenu.
-	for (auto& [key, value] : members)
-	{
-		if (key == "map") {
-			has_map_menu_elements |= 1;
-		}
-		else if (key == "east_arrow") {
-			has_map_menu_elements |= 2;
-		}
-		else if (key == "south_arrow") {
-			has_map_menu_elements |= 4;
-		}
-		else if (key == "selected_location_id") {
-			has_map_menu_elements |= 8;
-		}
-	}
-
-	return has_map_menu_elements == 15;
-}
-
-RValue& SpawnMenuHook(
-	IN CInstance* Self,
-	IN CInstance* Other,
-	OUT RValue& Result,
-	IN int ArgumentCount,
-	IN RValue** Arguments
-)
-{
-	const PFUNC_YYGMLScript original = reinterpret_cast<PFUNC_YYGMLScript>(MmGetHookTrampoline(
-		g_ArSelfModule,
-		SPAWN_MENU_SCRIPT
-	));
-	original(
-		Self,
-		Other,
-		Result,
-		ArgumentCount,
-		Arguments
-	);
-
-	if (g_SHOULD_DUMP) {
-		Dumper::DumpHookVariables(g_ModuleInterface, "spawn_menu", event_count_1, Self, Other, Result, ArgumentCount, Arguments);
-		event_count_1++;
-	}
-
-	return Result;
-}
-#pragma endregion
+DEFINE_DUMPING_HOOK_FUNCTION(SpawnMenuHook, PLUGIN_NAME, "spawn_menu", SPAWN_MENU_SCRIPT, event_count_1);
+DEFINE_DUMPING_HOOK_FUNCTION(AddTitleHook, PLUGIN_NAME, "spawn_menu", ADD_TITLE_SCRIPT, event_count_1);
 
 void EventObjectCallback(IN FWCodeEvent& CallContext)
 {
@@ -101,28 +42,6 @@ void EventObjectCallback(IN FWCodeEvent& CallContext)
 	}
 }
 
-RValue& OnDrawGuiHook(
-	IN CInstance* Self,
-	IN CInstance* Other,
-	OUT RValue& Result,
-	IN int ArgumentCount,
-	IN RValue** Arguments
-)
-{
-	const PFUNC_YYGMLScript original = reinterpret_cast<PFUNC_YYGMLScript>(MmGetHookTrampoline(
-		g_ArSelfModule,
-		ON_DRAW_GUI_SCRIPT
-	));
-	original(
-		Self,
-		Other,
-		Result,
-		ArgumentCount,
-		Arguments
-	);
-
-	return Result;
-}
 
 EXPORTED AurieStatus ModulePreinitialize(
 	IN AurieModule* Module,
@@ -153,6 +72,7 @@ EXPORTED AurieStatus ModuleInitialize(
 
 	RegisterHooks(last_status, {
 		{ SPAWN_MENU_SCRIPT, SPAWN_MENU_SCRIPT, SpawnMenuHook },
+        { ADD_TITLE_SCRIPT, ADD_TITLE_SCRIPT, SpawnMenuHook },
 	});
 
 	last_status = g_ModuleInterface->CreateCallback(

@@ -194,6 +194,9 @@ namespace Dumper {
 
 		// We want each folder (when using DumpHookVariables) to have their own copy
 		// of the files.
+        // FIXME: This will overwrite the page if its content has been changed across a call.
+        // E.g. dumping spawn menu multiple time will overwrite the page for `__anchor` and only the last
+        // dump will persist.
 		visited_pointers.clear();
 
 		queue.clear();
