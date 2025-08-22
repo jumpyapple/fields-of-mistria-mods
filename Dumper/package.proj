@@ -10,7 +10,7 @@
     <!-- Variables -->
     <PropertyGroup>
         <PackageId>com.jumpyapple.mods.Dumper</PackageId>
-        <Version>0.1.0</Version>
+        <Version>0.2.1</Version>
         <Authors>jumpyapple</Authors>
         <Company>jumpyapple</Company>
 
