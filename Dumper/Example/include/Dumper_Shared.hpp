@@ -18,9 +18,10 @@
 #ifdef DUMPER_EXPORTS
 #define DEFINE_DUMPING_HOOK_FUNCTION(FuncName, PluginName, FolderPrefix, HookIdentifier, CounterVarName) \
 YYTK::RValue& FuncName(IN YYTK::CInstance* Self, IN YYTK::CInstance* Other, OUT YYTK::RValue& Result, IN int ArgumentCount, IN YYTK::RValue** Arguments) { \
-	g_ModuleInterface->Print(YYTK::CM_LIGHTGREEN, "[%s %s] - '%s' is called!", PluginName, VERSION, HookIdentifier); \
 	const YYTK::PFUNC_YYGMLScript original = reinterpret_cast<YYTK::PFUNC_YYGMLScript>(Aurie::MmGetHookTrampoline(Aurie::g_ArSelfModule, HookIdentifier)); \
+    g_ModuleInterface->Print(YYTK::CM_LIGHTAQUA, "[%s %s] - '%s' called (argc: %d)", PluginName, VERSION, HookIdentifier, ArgumentCount); \
 	original(Self, Other, Result, ArgumentCount, Arguments); \
+    g_ModuleInterface->Print(YYTK::CM_LIGHTAQUA, "[%s %s] - '%s' exited", PluginName, VERSION, HookIdentifier, ArgumentCount); \
 	if (g_SHOULD_DUMP) { \
 		Dumper::DumpHookVariables(g_ModuleInterface, FolderPrefix, CounterVarName, Self, Other, Result, ArgumentCount, Arguments); \
 		CounterVarName++; \
@@ -30,9 +31,10 @@ YYTK::RValue& FuncName(IN YYTK::CInstance* Self, IN YYTK::CInstance* Other, OUT 
 #else
 #define DEFINE_DUMPING_HOOK_FUNCTION(FuncName, PluginName, FolderPrefix, HookIdentifier, CounterVarName) \
 YYTK::RValue& FuncName(IN YYTK::CInstance* Self, IN YYTK::CInstance* Other, OUT YYTK::RValue& Result, IN int ArgumentCount, IN YYTK::RValue** Arguments) { \
-	g_ModuleInterface->Print(YYTK::CM_LIGHTGREEN, "[%s %s] - '%s' is called!", PluginName, VERSION, HookIdentifier); \
 	const YYTK::PFUNC_YYGMLScript original = reinterpret_cast<YYTK::PFUNC_YYGMLScript>(Aurie::MmGetHookTrampoline(Aurie::g_ArSelfModule, HookIdentifier)); \
+	g_ModuleInterface->Print(YYTK::CM_LIGHTAQUA, "[%s %s] - '%s' called (argc: %d)", PluginName, VERSION, HookIdentifier, ArgumentCount); \
 	original(Self, Other, Result, ArgumentCount, Arguments); \
+    g_ModuleInterface->Print(YYTK::CM_LIGHTAQUA, "[%s %s] - '%s' exited", PluginName, VERSION, HookIdentifier, ArgumentCount); \
 	if (g_SHOULD_DUMP) { \
 		Dumper::CallDumpHookVariables(g_ModuleInterface, FolderPrefix, CounterVarName, Self, Other, Result, ArgumentCount, Arguments); \
 		CounterVarName++; \
