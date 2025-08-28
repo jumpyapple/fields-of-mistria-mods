@@ -1,5 +1,7 @@
 #include <fstream>
 #include <YYToolkit/YYTK_Shared.hpp>
+#include <jumpyapple/jumpyapple.hpp>
+
 #include "common.hpp"
 #include "Dumper_shared.hpp"
 #include "RegisterHook.hpp"
@@ -279,37 +281,42 @@ void CreateTextInputPopup() {
     CInstance* global_instance = nullptr;
     AurieStatus status = g_ModuleInterface->GetGlobalInstance(&global_instance);
     if (!AurieSuccess(status)) {
-        g_ModuleInterface->Print(CM_LIGHTAQUA, "[%s %s] - Failed to get global instance!", PLUGIN_NAME, VERSION);
+        g_ModuleInterface->Print(CM_LIGHTRED, "[%s %s] - Failed to get global instance!", PLUGIN_NAME, VERSION);
         return;
     }
 
-    // Obtain the function to hijack.
-    RValue anchor = global_instance->GetMember("__anchor");
-    std::vector<RValue> open_menus = anchor["open_menus"]["__buffer"].ToVector();
-    RValue info_hud_menu;
-    for (int i = 0; i < open_menus.size(); i++) {
-        if (IsInfoHudMenu(open_menus[i])) {
-            info_hud_menu = open_menus[i];
-        }
-    }
-    if (info_hud_menu.m_Kind != VALUE_OBJECT) {
-        g_ModuleInterface->Print(CM_LIGHTAQUA, "[%s %s] - Failed to get InfoHudMenu!", PLUGIN_NAME, VERSION);
+    // Get the anchor and we will use it later.
+    RValue global_instance_rval = global_instance->ToRValue();
+    RValue* anchor = jumpyapple::get_ref_member(&global_instance_rval, "__anchor").value_or(nullptr);
+    if (anchor == nullptr) {
+        g_ModuleInterface->Print(CM_LIGHTRED, "[%s %s - CreateTextInputPopup] - Failed to get __anchor. The call is aborted.", PLUGIN_NAME, VERSION);
         return;
     }
-    RValue func = info_hud_menu["journal_pin"]["event_callbacks"]["tap"]["func"];
 
+    // Find the InfoHudMenu in the __anchor and obtain the function to hijack.
+    auto maybe_info_hud_menu = jumpyapple::find_menu_by_name(anchor, "InfoHudMenu");
+    if (!maybe_info_hud_menu.has_value() || maybe_info_hud_menu.value().m_Kind != VALUE_OBJECT) {
+        g_ModuleInterface->Print(CM_LIGHTAQUA, "[%s %s - CreateTextInputPopup] - Failed to get InfoHudMenu! The call is aborted.", PLUGIN_NAME, VERSION);
+        return;
+    }
+    auto maybe_func = jumpyapple::get_ref_member_from_path(&maybe_info_hud_menu.value(), {"journal_pin", "event_callbacks", "tap", "func"});
+    if (!maybe_func.has_value()) {
+        g_ModuleInterface->Print(CM_LIGHTAQUA, "[%s %s - CreateTextInputPopup] - Failed to get a script function! The call is aborted.", PLUGIN_NAME, VERSION);
+        return;
+    }
+
+    // Prepare the arguments and create the popup.
     RValue script_name = "Cutscenes/Heart Events/Hayden/hayden_two_hearts/hayden_two_hearts/13/prompts/1";
     RValue preload_text = "Yup yup";
     RValue len_maybe = 143.0;
-
     RValue undefined_val;
 
     RValue ret1;
-    g_ModuleInterface->CallGameScriptEx(ret1, SCRIPT_TEXT_INPUT_POPUP, anchor.ToInstance(), nullptr, {
+    g_ModuleInterface->CallGameScriptEx(ret1, SCRIPT_TEXT_INPUT_POPUP, anchor->ToInstance(), nullptr, {
         script_name,
         preload_text,
         len_maybe,
-        func,
+        *maybe_func.value(),
         undefined_val
         });
 
