@@ -151,6 +151,10 @@
     <ClInclude Include="include\YYToolkit\YYTK_Shared_Base.hpp" />
     <ClInclude Include="include\YYToolkit\YYTK_Shared_Interface.hpp" />
     <ClInclude Include="include\YYToolkit\YYTK_Shared_Types.hpp" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="include\MistmareEverywhere.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
