@@ -20,6 +20,7 @@ Types of changes
 
 - Switch to subscript instead of explicitly call `struct_set`.
 - Switch to the common library.
+- Upgrade Aurie to 2.0.0 and YYTK to 5.0.0
 
 ### Deprecated
 ### Removed

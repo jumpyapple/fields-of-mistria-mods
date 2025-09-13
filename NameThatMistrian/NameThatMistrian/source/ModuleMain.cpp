@@ -3,16 +3,17 @@
 * @author jumpyapple
 *
 */
+#include <Aurie/shared.hpp>
 #include <YYToolkit/YYTK_Shared.hpp>
 #include <jumpyapple/jumpyapple.hpp>
 
 #include "resource.h"
+#include "version.h"
 
 using namespace Aurie;
 using namespace YYTK;
 
 static YYTK::YYTKInterface* g_ModuleInterface = nullptr;
-static const char* const VERSION = "0.2.0";
 
 // We need to hook into this so we can re-parse MapMenu for NPCs' icon.
 static const char* const SPAWN_MENU_SCRIPT = "gml_Script_spawn_menu@Anchor@Anchor";
@@ -25,23 +26,20 @@ static const char* const NORTH_ARROW_TAP_SCRIPT = "gml_Script_anon@9836@MapMenu@
 //static const char* const EAST_ARROW_TAP_SCRIPT = "gml_Script_anon@12362@MapMenu@MapMenu";
 //static const char* const WEST_ARROW_TAP_SCRIPT = "gml_Script_anon@11522@MapMenu@MapMenu";
 
-static RValue MapMenu;
-static RValue name_text_node;
+static const bool LOOKUP_NPC_NAME_ENABLED = false;
+
+RValue *name_text_node = nullptr;
 static std::string original_map_name;
 static std::string new_map_name;
 
-static RValue original_on_tap_function;
-static RValue our_tap_event_callback;
-//static RValue our_think_event_callback;
-
 // Somehow the event callback function need to return something.
 // true seems to work fine, so we leave it as that.
-static RValue empty_result = true;
+RValue *empty_result = nullptr;
 
 /**
 * Add `tap` event callback to the NPC's icon sprite.
 */
-void InjectTapCallbacks(RValue MapMenu) {
+void InjectTapCallbacks(RValue MapMenu, RValue original_on_tap_function) {
     RValue map = MapMenu.GetMember("map");
     std::vector<RValue> positional_nodes = map.GetMember("children").ToVector();
 
@@ -114,30 +112,33 @@ void InjectTapCallbacks(RValue MapMenu) {
 }
 
 void Setup(RValue MapMenu) {
+    if (empty_result == nullptr) {
+        empty_result = new RValue(true);
+    }
+
     // Retrieve event_callback from the north_arrow.
     auto maybe_func = jumpyapple::get_ref_member_from_path(&MapMenu, { "north_arrow", "event_callbacks", "tap", "func" });
     if (!maybe_func.has_value()) {
-        g_ModuleInterface->Print(CM_LIGHTRED, "[NameThatMistrian %s] - Failed to get an original function from path: north_arrow, event_callbacks, tap, func! Aborted the setup.", VERSION);
+        DbgPrintEx(LOG_SEVERITY_ERROR, "[%s %s] Failed to get an original function from path: north_arrow, event_callbacks, tap, func! Aborted the setup.", PLUGIN_NAME, VERSION_STR);
         return;
     }
     
     auto maybe_map_text = jumpyapple::get_ref_member_from_path(&MapMenu, { "name", "text" });
     if (!maybe_map_text.has_value()) {
-        g_ModuleInterface->Print(CM_LIGHTRED, "[NameThatMistrian %s] - Failed to get a name TextNode from path: name, text! Aborted the setup.", VERSION);
+        DbgPrintEx(LOG_SEVERITY_ERROR, "[%s %s] Failed to get a name TextNode from path: name, text! Aborted the setup.", PLUGIN_NAME, VERSION_STR);
         return;
     }
 
     auto maybe_text_node = jumpyapple::get_ref_member(&MapMenu, "name");
     if (!maybe_text_node.has_value()) {
-        g_ModuleInterface->Print(CM_LIGHTRED, "[NameThatMistrian %s] - Failed to obtain a text node in the map! Aborted the setup.", VERSION);
+        DbgPrintEx(LOG_SEVERITY_ERROR, "[%s %s] Failed to obtain a text node in the map! Aborted the setup.", PLUGIN_NAME, VERSION_STR);
         return;
     }
 
-    name_text_node = *maybe_text_node.value();
-    original_on_tap_function = *maybe_func.value();
+    name_text_node = maybe_text_node.value();
     original_map_name = maybe_map_text.value()->ToCString();
 
-    InjectTapCallbacks(MapMenu);
+    InjectTapCallbacks(MapMenu, *maybe_func.value());
 }
 
 /**
@@ -175,12 +176,78 @@ RValue& SpawnMenuHook(
         if (jumpyapple::is_instance_of(&Result, "MapMenu")) {
             // Save map menu. Althought, if it is active, we should
             // be able to retrieve it from __anchor in the global instance.
-            MapMenu = Result;
-            Setup(MapMenu);
+            Setup(Result);
         }
     }
 
     return Result;
+}
+
+std::string get_npc_name(std::string npc_id) {
+    std::string name = npc_id;
+
+    CInstance* global_instance;
+    AurieStatus status = g_ModuleInterface->GetGlobalInstance(&global_instance);
+    if (AurieSuccess(status)) {
+        auto maybe_localizer = jumpyapple::get_ref_member(&global_instance->ToRValue(), "__localizer");
+        if (maybe_localizer.has_value()) {
+            RValue localizer = *maybe_localizer.value();
+
+            RValue result;
+            /* status = g_ModuleInterface->CallBuiltinEx(result, "gml_Script_has@Localizer@Localizer", localizer.ToInstance(), nullptr, {
+                 std::format("npcs/{}/name", name_id).c_str()
+                 });*/
+
+                 //if (AurieSuccess(status) && result.m_Kind == VALUE_BOOL) {
+
+            CRoom* current_room;
+            status = g_ModuleInterface->GetCurrentRoomData(current_room);
+            if (!AurieSuccess(status)) {
+                DbgPrintEx(LOG_SEVERITY_ERROR, "[%s %s] Failed to get current room data!", PLUGIN_NAME, VERSION_STR);
+                return name;
+            }
+
+            RValue game_instance;
+            for (CInstance* itr = current_room->GetMembers().m_ActiveInstances.m_First; itr != nullptr; itr = itr->GetMembers().m_Flink) {
+                if (itr->ToRValue().m_Kind == VALUE_OBJECT) {
+                    std::string object_name = itr->m_Object->m_Name;
+                    if (object_name == "Game") {
+                        game_instance = itr->ToRValue();
+                        g_ModuleInterface->EnumInstanceMembers(game_instance, [](const char* member_name, YYTK::RValue* member_value) {
+                            DbgPrintEx(LOG_SEVERITY_DEBUG, "%s", member_name);
+                            return false;
+                            });
+                        break;
+                    }
+                }
+            }
+            if (game_instance.m_Kind == VALUE_UNDEFINED || game_instance.m_Kind == VALUE_NULL) {
+                DbgPrintEx(LOG_SEVERITY_ERROR, "[%s %s] Failed to get game instance!", PLUGIN_NAME, VERSION_STR);
+                return name;
+            }
+
+            std::string id = "npcs/";
+            id += npc_id;
+            id += "/name";
+            //std::format("npcs/{}/name", name_id).c_str()
+
+            RValue arg0 = "misc_local/pick_up";
+            status = g_ModuleInterface->CallBuiltinEx(result, "gml_Script_get@Localizer@Localizer", localizer.ToInstance(), game_instance.ToInstance(), {
+                arg0
+                });
+
+            name = result.ToCString();
+            //}
+        }
+        else {
+            DbgPrintEx(LOG_SEVERITY_WARNING, "[%s %s] Failed to obtain the __localizer. Falling back to displaying the sprite ID.", PLUGIN_NAME, VERSION_STR);
+        }
+    }
+    else {
+        DbgPrintEx(LOG_SEVERITY_WARNING, "[%s %s] Failed to obtain the global instance. Falling back to displaying the sprite ID.", PLUGIN_NAME, VERSION_STR);
+    }
+
+    return name;
 }
 
 /**
@@ -213,39 +280,14 @@ RValue& NorthArrowTapHook(
             // Confirming that we are the target of the callback.
             if (Arguments[0]->ToDouble() == 30) {
                 std::string name_id = Arguments[1]->ToCString();
-
                 std::string name;
+
                 if (name_id != "me" && name_id != "pet" && name_id != "unknown") {
-                    CInstance* global_instance;
-                    AurieStatus status = g_ModuleInterface->GetGlobalInstance(&global_instance);
-                    if (AurieSuccess(status)) {
-                        auto maybe_localizer = jumpyapple::get_ref_member(&global_instance->ToRValue(), "__localizer");
-                        if (maybe_localizer.has_value()) {
-                            RValue localizer = *maybe_localizer.value();
-
-                            RValue result;
-                           /* status = g_ModuleInterface->CallBuiltinEx(result, "gml_Script_has@Localizer@Localizer", localizer.ToInstance(), nullptr, {
-                                std::format("npcs/{}/name", name_id).c_str()
-                                });*/
-
-                            //if (AurieSuccess(status) && result.m_Kind == VALUE_BOOL) {
-                            std::string id = "npcs/";
-                            id += name_id;
-                            id += "/name";
-                            //std::format("npcs/{}/name", name_id).c_str()
-                            status = g_ModuleInterface->CallBuiltinEx(result, "gml_Script_get@Localizer@Localizer", localizer.ToInstance(), nullptr, {
-                                "npcs/adeline/name"
-                                });
-
-                            name = result.ToCString();
-                            //}
-                        }
-                        else {
-                            g_ModuleInterface->Print(CM_LIGHTYELLOW, "[NameThatMistrian %s] - Failed to obtain the __localizer. Falling back to displaying the sprite ID.", VERSION);
-                        }
+                    if (LOOKUP_NPC_NAME_ENABLED) {
+                        name = get_npc_name(name_id);
                     }
                     else {
-                        g_ModuleInterface->Print(CM_LIGHTYELLOW, "[NameThatMistrian %s] - Failed to obtain the global instance. Falling back to displaying the sprite ID.", VERSION);
+                        name = name_id;
                     }
                 }
                 else {
@@ -258,12 +300,15 @@ RValue& NorthArrowTapHook(
                 new_map_name.append(name);
 
                 // The `text` member does not work, so we are using `display_text`.
-                name_text_node["display_text"] = new_map_name.c_str();
+                if (name_text_node != nullptr) {
+                    (*name_text_node)["display_text"] = new_map_name.c_str();
+                }
             }
         }
 
         // Return since we do not want the orignal behavior to run.
-        return empty_result;
+        //return empty_result;
+        return *empty_result;
     }
 
     const PFUNC_YYGMLScript original = reinterpret_cast<PFUNC_YYGMLScript>(MmGetHookTrampoline(
@@ -295,8 +340,6 @@ RValue& SelectLocationHook(
     IN RValue** Arguments
 )
 {
-    //g_ModuleInterface->Print(CM_LIGHTGREEN, "[NameThatMistrian %s] - SelectLocationHook called!", VERSION);
-
     const PFUNC_YYGMLScript original = reinterpret_cast<PFUNC_YYGMLScript>(MmGetHookTrampoline(
         g_ArSelfModule,
         SELECT_LOCATION_SCRIPT
@@ -311,8 +354,7 @@ RValue& SelectLocationHook(
 
     // Everytime the map/location in the minimap changes, we lose the event callback,
     // so we are re-registering them.
-    MapMenu = Self;
-    Setup(MapMenu);
+    Setup(Self);
 
     return Result;
 }
@@ -323,7 +365,8 @@ void RegisterHook(OUT AurieStatus& status, IN const char* script_name, IN std::s
 
     status = g_ModuleInterface->GetNamedRoutinePointer(script_name, reinterpret_cast<PVOID*>(&can_mount_ptr));
     if (!AurieSuccess(status)) {
-        g_ModuleInterface->Print(CM_LIGHTRED, "[NameThatMistrian %s] - Failed to get script (%s)!", VERSION, script_name);
+        DbgPrintEx(LOG_SEVERITY_ERROR, "[%s %s] Failed to get script (%s)!", PLUGIN_NAME, VERSION_STR, script_name);
+        return;
     }
 
     status = MmCreateHook(
@@ -335,7 +378,7 @@ void RegisterHook(OUT AurieStatus& status, IN const char* script_name, IN std::s
     );
 
     if (!AurieSuccess(status)) {
-        g_ModuleInterface->Print(CM_LIGHTRED, "[NameThatMistrian %s] - Failed to create hook for '%s'!", VERSION, script_name);
+        DbgPrintEx(LOG_SEVERITY_ERROR, "[%s %s] Failed to create hook for '%s'!", PLUGIN_NAME, VERSION_STR, script_name);
     }
 }
 
@@ -383,7 +426,7 @@ EXPORTED AurieStatus ModuleInitialize(
     if (!g_ModuleInterface)
         return AURIE_MODULE_DEPENDENCY_NOT_RESOLVED;
 
-    g_ModuleInterface->Print(CM_LIGHTAQUA, "[NameThatMistrian %s] - Plugin starting ...", VERSION);
+    DbgPrintEx(LOG_SEVERITY_DEBUG, "[%s %s] Plugin starting ...", PLUGIN_NAME, VERSION_STR);
 
     RegisterHooks(last_status, {
         { SPAWN_MENU_SCRIPT, SPAWN_MENU_SCRIPT, SpawnMenuHook },
@@ -391,11 +434,11 @@ EXPORTED AurieStatus ModuleInitialize(
         { SELECT_LOCATION_SCRIPT, SELECT_LOCATION_SCRIPT, SelectLocationHook },
         });
     if (!AurieSuccess(last_status)) {
-        g_ModuleInterface->Print(CM_LIGHTRED, "[NameThatMistrian %s] - Exiting due to failure on start!", VERSION);
+        DbgPrintEx(LOG_SEVERITY_ERROR, "[%s %s] Exiting due to failure on start!", PLUGIN_NAME, VERSION_STR);
         return last_status;
     }
 
-    g_ModuleInterface->Print(CM_LIGHTGREEN, "[NameThatMistrian %s] - Plugin started!", VERSION);
+    DbgPrintEx(LOG_SEVERITY_DEBUG, "[%s %s] Plugin started!", PLUGIN_NAME, VERSION_STR);
 
     return last_status;
 }

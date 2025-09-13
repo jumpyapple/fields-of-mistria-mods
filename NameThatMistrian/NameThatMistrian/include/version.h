@@ -1,20 +1,23 @@
 #pragma once
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 1
+#define VERSION_MINOR 2
 #define VERSION_REVISION 0
 #define VERSION_BUILD 0
 
 #define VERSION_STRINGIZE2(s) #s
 #define VERSION_STRINGIZE(s) VERSION_STRINGIZE2(s)
 #define VERSION_FILE_VERSION VERSION_MAJOR, VERSION_MINOR, VERSION_REVISION, VERSION_BUILD
+#define VERSION_STR VERSION_STRINGIZE(VERSION_MAJOR) "." \
+                        VERSION_STRINGIZE(VERSION_MINOR) "." \
+                        VERSION_STRINGIZE(VERSION_REVISION)
 #define VERSION_FILE_VERSION_STR VERSION_STRINGIZE(VERSION_MAJOR) "." \
                                    VERSION_STRINGIZE(VERSION_MINOR) "." \
                                    VERSION_STRINGIZE(VERSION_REVISION) "." \
                                    VERSION_STRINGIZE(VERSION_BUILD)
 
-#define PLUGIN_NAME = "NameThatMistrian"
+#define PLUGIN_NAME "NameThatMistrian"
 #define VERSION_PRODUCT_NAME_STR "Name That Mistrian"
 #define VERSION_COPYRIGHT_STR "Copyright (C) 2025"
 
-#define ORIGINAL_FILENAME_STR "NameThatMistrian.dll"
+#define ORIGINAL_FILENAME_STR PLUGIN_NAME ".dll"
