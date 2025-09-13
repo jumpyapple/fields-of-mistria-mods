@@ -1,9 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36401.2 d17.14
+VisualStudioVersion = 17.14.36401.2
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NameThatMistrian", "NameThatMistrian\NameThatMistrian.vcxproj", "{32acfe27-81bf-4928-ac05-6d5877a41c05}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NameThatMistrian", "NameThatMistrian\NameThatMistrian.vcxproj", "{32ACFE27-81BF-4928-AC05-6D5877A41C05}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		CHANGELOG.md = CHANGELOG.md
+		MAINTENANCE.md = MAINTENANCE.md
+		manifest.json = manifest.json
+		package.proj = package.proj
+		package.ps1 = package.ps1
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +24,14 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{32acfe27-81bf-4928-ac05-6d5877a41c05}.Debug|x64.ActiveCfg = Debug|x64
-		{32acfe27-81bf-4928-ac05-6d5877a41c05}.Debug|x64.Build.0 = Debug|x64
-		{32acfe27-81bf-4928-ac05-6d5877a41c05}.Debug|x86.ActiveCfg = Debug|Win32
-		{32acfe27-81bf-4928-ac05-6d5877a41c05}.Debug|x86.Build.0 = Debug|Win32
-		{32acfe27-81bf-4928-ac05-6d5877a41c05}.Release|x64.ActiveCfg = Release|x64
-		{32acfe27-81bf-4928-ac05-6d5877a41c05}.Release|x64.Build.0 = Release|x64
-		{32acfe27-81bf-4928-ac05-6d5877a41c05}.Release|x86.ActiveCfg = Release|Win32
-		{32acfe27-81bf-4928-ac05-6d5877a41c05}.Release|x86.Build.0 = Release|Win32
+		{32ACFE27-81BF-4928-AC05-6D5877A41C05}.Debug|x64.ActiveCfg = Debug|x64
+		{32ACFE27-81BF-4928-AC05-6D5877A41C05}.Debug|x64.Build.0 = Debug|x64
+		{32ACFE27-81BF-4928-AC05-6D5877A41C05}.Debug|x86.ActiveCfg = Debug|Win32
+		{32ACFE27-81BF-4928-AC05-6D5877A41C05}.Debug|x86.Build.0 = Debug|Win32
+		{32ACFE27-81BF-4928-AC05-6D5877A41C05}.Release|x64.ActiveCfg = Release|x64
+		{32ACFE27-81BF-4928-AC05-6D5877A41C05}.Release|x64.Build.0 = Release|x64
+		{32ACFE27-81BF-4928-AC05-6D5877A41C05}.Release|x86.ActiveCfg = Release|Win32
+		{32ACFE27-81BF-4928-AC05-6D5877A41C05}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
