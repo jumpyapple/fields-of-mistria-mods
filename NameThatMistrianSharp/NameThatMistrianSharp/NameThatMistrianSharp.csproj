@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="AurieSharpInterop">
+      <HintPath>..\..\..\..\..\projects\fields-of-mistria-modding\AurieSharp\x64\Release\AurieSharpInterop.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
