@@ -1,6 +1,4 @@
 ﻿using AurieSharpInterop;
-using System.Linq.Expressions;
-using System.Xml.Linq;
 using YYTKInterop;
 
 namespace NameThatMistrianSharp
@@ -19,32 +17,23 @@ namespace NameThatMistrianSharp
             }
             return arr;
         }
-
-        /*public static GameVariable ToGameVariable(this Dictionary<string, GameVariable> instance)
-        {
-            GameVariable[] args = { "a", 3 };
-            var st = Game.Engine.CallScript("gml_Script_array_to_struct", args.ToGameVariable());
-
-            foreach (KeyValuePair<string, GameVariable> entry in instance)
-            {
-                
-            }
-            return st;
-        }*/
     }
 
     internal static class NameThatMistrianMod
     {
+        const string PLUGIN_NAME = "NameThatMistrian";
+        const string VERSION = "0.2.0";
+
         static string OriginalMapName = "";
         static GameVariable? NameTextNode = null;
 
         public static AurieStatus InitializeMod(AurieManagedModule Module)
         {
-            Framework.Print("Initializing mod ...");
+            Framework.PrintEx(AurieLogSeverity.Debug, $"[{PLUGIN_NAME} {VERSION}] initializing ...");
             Game.Events.AddPostScriptNotification(Module, "gml_Script_spawn_menu@Anchor@Anchor", SpawnMenuCallback);
             Game.Events.AddPostScriptNotification(Module, "gml_Script_select_location@MapMenu@MapMenu", SelectLocationCallback);
             Game.Events.AddPreScriptNotification(Module, "gml_Script_anon@9836@MapMenu@MapMenu", NorthArrowTapCallback);
-            Framework.Print("Successfully initialized the mod");
+            Framework.PrintEx(AurieLogSeverity.Debug, $"[{PLUGIN_NAME} {VERSION}] initialized");
             return AurieStatus.Success;
         }
 
@@ -52,7 +41,7 @@ namespace NameThatMistrianSharp
         {
         }
 
-        public static void InjectTapCallback(GameVariable MapMenu, GameVariable OriginalOnTapFunction)
+        public static void InjectTapCallbacks(GameVariable MapMenu, GameVariable OriginalOnTapFunction)
         {
             var map = MapMenu["map"];
             foreach (var positional_node in map["children"].ToArrayView())
@@ -84,7 +73,7 @@ namespace NameThatMistrianSharp
                                 name = "pet";
                             }
 
-                            GameVariable[] arg_array = { 30, name };
+                            GameVariable[] arg_array = { "dev.jumpyapple.fom-mod.ntm", name };
 
                             Dictionary<string, GameVariable> our_tap_event_callback = new();
                             our_tap_event_callback.Add("arg_array", arg_array.ToGameVariable());
@@ -107,7 +96,9 @@ namespace NameThatMistrianSharp
             var func_args = Context.Arguments.ToArray();
             if (func_args.Length == 2)
             {
-                if (func_args[0].ToInt64() == 30)
+                string mod_id;
+                var success = func_args[0].TryGetString(out mod_id);
+                if (success && mod_id == "dev.jumpyapple.fom-mod.ntm")
                 {
                     var name_id = func_args[1].ToString();
                     string name;
@@ -144,7 +135,6 @@ namespace NameThatMistrianSharp
 
         public static void Setup(GameVariable Menu)
         {
-            Framework.Print("Setting up ...");
             try
             {
                 var func = Menu["north_arrow"]["event_callbacks"]["tap"]["func"];
@@ -154,11 +144,11 @@ namespace NameThatMistrianSharp
                 NameTextNode = text_node;
                 OriginalMapName = map_text.ToString();
 
-                InjectTapCallback(Menu, func);
+                InjectTapCallbacks(Menu, func);
             }
             catch (Exception e)
             {
-                Framework.Print("Failed during setup!");
+                Framework.PrintEx(AurieLogSeverity.Error, $"[{PLUGIN_NAME} {VERSION}] failed during setup: {e.Message}");
             }
         }
 
